@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -51,3 +51,11 @@ class UserLogoutAPIView(GenericAPIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+class UserInfoAPIView(RetrieveAPIView):
+    permission_classes = (IsAuthenticated, )
+
+    serializer_class = CustomUserSerializer
+
+    def get_object(self):
+        return self.request.user
