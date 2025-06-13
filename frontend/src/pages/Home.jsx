@@ -1,64 +1,48 @@
-import React, { useState, useEffect } from 'react'
-import axios from axios
+import React, { useState, useEffect } from 'react';
+import { Sidebar } from './Sidebar';
+import { Header } from './Header';
 
 export default function Home() {
-  const [username, setUsername] = useState("")
-  const [isLoggedin, setIsLoggedIn] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [lessons, setLessons] = useState([]);
+  const [selectedLesson, setSelectedLesson] = useState(null);
 
-  useEffect (() => {
-    const checkLoggedInUser = async () => {
-      try{
-        const token = localStorage.getItem("accessToken");
-        if(token){
-          const config = {
-            headers: {
-              "Authorization": `Bearer ${token}`
-            }
-          };
-          const response = await axios.get("http://localhost:8000/api/user/", config)
-          setIsLoggedIn(true)
-          setUsername(response.data.username )
-        }
-        else{
-          setIsLoggedIn(false)
-          setUsername("")
-        }
-      }
-      catch(error){
-        setIsLoggedIn(false)
-        setUsername("")
-      }
-    };
+  useEffect(() => {
+    fetch('http://localhost:8000/api/lessons')
+      .then(res => res.json())
+      .then(data => setLessons(data));
+  }, []);
 
-    checkLoggedInUser()
-  }, [])
-
-  const handleLogout = async () => {
-    try{
-      const refreshToken = localStorage.getItem("refreshToken")
-      if(refreshToken){
-        await axios.post("htttp://localhost:8000/api/logout/", {"refresh": refreshToken})
-        localStorage.removeItem("access");
-        localStorage.removeItem("refresh");
-        setIsLoggedIn(false)
-        setUsername("")
-      }
-    }
-    catch(error){
-      console.log("Fails to Log Out")
-    }
-  }
+  const groupedLessons = lessons.reduce((acc, lesson) => {
+    const yearKey = `Year ${lesson.year}`;
+    if (!acc[yearKey]) acc[yearKey] = [];
+    acc[yearKey].push(lesson);
+    return acc;
+  }, {});
 
   return (
-    <div>
-      {isLoggedin ? (
-        <>
-          <h2>Hi, {username}. Thanks for loggin in!</h2>
-          <button onClick={handleLogout}>Log Out</button>
-        </>
-      ):(
-        <h2>Please Log In!</h2>
-      )}
+    <div className="flex h-screen w-screen bg-beige text-black overflow-hidden">
+      <Sidebar
+        open={sidebarOpen}
+        setOpen={setSidebarOpen}
+        lessonsByYear={groupedLessons}
+        onSelectLesson={setSelectedLesson}
+      />
+      <div className="flex-1 flex flex-col">
+        <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <main className="flex-1 p-6 flex items-center justify-center">
+          <div className="w-full max-w-4xl h-[70vh] border-2 border-dashed border-black/20 rounded-2xl bg-white/50 p-6 overflow-y-auto">
+            {selectedLesson ? (
+              <>
+                <h2 className="text-2xl font-bold mb-2">{selectedLesson.title}</h2>
+                <p>{selectedLesson.text}</p>
+              </>
+            ) : (
+              <p className="text-center text-gray-600">Select a lesson to begin.</p>
+            )}
+          </div>
+        </main>
+      </div>
     </div>
-  )
+  );
 }

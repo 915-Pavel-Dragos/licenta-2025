@@ -1,8 +1,11 @@
-import React, { useState } from 'react'
-import axios from axios
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
       email: "",
       password: ""
@@ -11,7 +14,7 @@ export default function Login() {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.targer.name]: e.target.value
+      [e.target.name]: e.target.value
     })
   }
 
@@ -34,6 +37,7 @@ export default function Login() {
         setSuccessMessage("Login Successful!")
         localStorage.setItem("accessToken", response.data.tokens.access);
         localStorage.setItem("refreshToken", response.data.tokens.refresh);
+        navigate('/home');
       }
       catch(error){
         console.log("Error during login", error.response?.data);
@@ -62,7 +66,7 @@ export default function Login() {
         <br/>
 
         <label>password:</label><br/>
-        <input type="password" name="password2" value={formData.password2} onChange={handleChange}/><br/>
+        <input type="password" name="password" value={formData.password} onChange={handleChange}/><br/>
         <br/>
 
         <button type="submit" disabled={isLoading} onClick={handleSubmit}>Login </button>

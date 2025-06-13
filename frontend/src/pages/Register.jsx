@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import axios from axios
+import React, { useState } from 'react';
+import axios from 'axios';
 
 
 export default function Register() {
@@ -13,7 +13,7 @@ export default function Register() {
   const handleChange = (e) => {
       setFormData({
         ...formData,
-        [e.targer.name]: e.target.value
+        [e.target.name]: e.target.value
       })
   }
 
@@ -32,7 +32,7 @@ export default function Register() {
       setIsLoading(true);
 
       try{
-        const response = await axios.post("http://localhost:8000/api/register/", formData)
+        const response = await axios.post("http://127.0.0.1:8000/api/register/", formData)
         setSuccessMessage("Registration Successful!")
       }
       catch(error){

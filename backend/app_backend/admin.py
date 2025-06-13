@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser
+from .models import CustomUser, Lesson
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 from django.contrib.auth.admin import UserAdmin
 
@@ -10,3 +10,10 @@ class CustomAdminUser(UserAdmin):
     form = CustomUserChangeForm
 
     model = CustomUser
+
+
+@admin.register(Lesson)
+class LessonAdmoin(admin.ModelAdmin):
+    list_display = ('title', 'year', 'difficulty')
+    search_fields = ('title', )
+    list_filter = ('year', 'difficulty')

@@ -9,3 +9,18 @@ class CustomUser(AbstractUser):
 
     def __str__(self) -> str:
         return self.email
+
+class Lesson(models.Model):
+    DIFFICUTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard')
+    ]
+
+    title = models.CharField(max_length=255)
+    text = models.TextField()
+    year = models.PositiveSmallIntegerField(choices=[(i, f"Year {i}") for i in range(1,9)])
+    difficulty = models.CharField(max_length=10, choices=DIFFICUTY_CHOICES)
+
+    def __str__(self):
+        return self.title

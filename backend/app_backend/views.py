@@ -1,10 +1,11 @@
 from django.shortcuts import render
-from rest_framework.generics import GenericAPIView, RetrieveAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
+from .models import Lesson
 
 
 class UserRegistrationAPIView(GenericAPIView):
@@ -54,8 +55,19 @@ class UserLogoutAPIView(GenericAPIView):
         
 class UserInfoAPIView(RetrieveAPIView):
     permission_classes = (IsAuthenticated, )
-
     serializer_class = CustomUserSerializer
 
     def get_object(self):
         return self.request.user
+    
+class LessonListView(ListAPIView):
+    queryset = Lesson.objects.all()
+    serializer_class = LessonSerializer
+
+class LessonByYearView(ListAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = LessonSerializer
+
+    def get_queryset(self):
+        year = self.kwargs['year']
+        return Lesson.objects.filter(year=year)
