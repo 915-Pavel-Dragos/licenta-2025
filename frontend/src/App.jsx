@@ -5,7 +5,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { ProfilePage } from './pages/ProfilePage';
-
+import GamePage from './pages/GamePage';
 
 function App() {
   return (
@@ -15,6 +15,7 @@ function App() {
         <Route path='/home' element={<Home/>}/>
         <Route path='/register' element={<Register/>}/>
         <Route path='/profile' element={<ProfilePage/>}/>
+        <Route path='/game/:lessonId' element={<GamePage/>}/>
       </Routes>
     </BrowserRouter>
   )

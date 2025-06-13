@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [lessons, setLessons] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('http://localhost:8000/api/lessons')
@@ -20,6 +22,11 @@ export default function Home() {
     return acc;
   }, {});
 
+  const handlePlayGame = () => {
+    const url = `${window.location.origin}/game/${selectedLesson.id}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="flex h-screen w-screen bg-beige text-black overflow-hidden">
       <Sidebar
@@ -30,8 +37,8 @@ export default function Home() {
       />
       <div className="flex-1 flex flex-col">
         <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 p-6 flex items-center justify-center">
-          <div className="w-full max-w-4xl h-[70vh] border-2 border-dashed border-black/20 rounded-2xl bg-white/50 p-6 overflow-y-auto">
+        <main className="flex-1 p-6 flex flex-col items-center justify-center">
+          <div className="w-full max-w-4xl h-[70vh] border-2 border-dashed border-black/20 rounded-2xl bg-white/50 p-6 overflow-y-auto mb-6">
             {selectedLesson ? (
               <>
                 <h2 className="text-2xl font-bold mb-2">{selectedLesson.title}</h2>
@@ -41,7 +48,12 @@ export default function Home() {
               <p className="text-center text-gray-600">Select a lesson to begin.</p>
             )}
           </div>
-        </main>
+          {selectedLesson && (
+            <button onClick={handlePlayGame} className="bg-[#6B4226] hover:bg-[#5a3922] text-white font-medium py-2 px-6 rounded-lg transition">
+              Play Game
+            </button>
+          )}
+      </main>
       </div>
     </div>
   );
