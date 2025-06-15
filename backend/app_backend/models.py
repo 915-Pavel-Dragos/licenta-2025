@@ -24,3 +24,10 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
+    
+
+class GameScore(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    played_at = models.DateTimeField(auto_now_add=True)

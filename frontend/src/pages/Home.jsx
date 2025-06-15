@@ -2,11 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+// Submit game score to backend
+async function submitScore(lessonId, score) {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await axios.post('http://localhost:8000/api/scores/submit/', 
+      { lesson: lessonId, score },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    console.log(score);
+    console.log('Score submitted:', response.data);
+  } catch (error) {
+    console.error('Failed to submit score', error);
+  }
+}
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [lessons, setLessons] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,6 +31,19 @@ export default function Home() {
       .then(res => res.json())
       .then(data => setLessons(data));
   }, []);
+
+  // Fetch leaderboard for selected lesson
+  useEffect(() => {
+    if (!selectedLesson) {
+      setLeaderboard([]);
+      return;
+    }
+
+    fetch(`http://localhost:8000/api/lessons/${selectedLesson.id}/leaderboard/`)
+      .then(res => res.json())
+      .then(data => setLeaderboard(data))
+      .catch(() => setLeaderboard([]));
+  }, [selectedLesson]);
 
   const groupedLessons = lessons.reduce((acc, lesson) => {
     const yearKey = `Year ${lesson.year}`;
@@ -23,8 +53,15 @@ export default function Home() {
   }, {});
 
   const handlePlayGame = () => {
+    if (!selectedLesson) return;
+
+    // Example: Open game in a new tab
     const url = `${window.location.origin}/game/${selectedLesson.id}`;
     window.open(url, '_blank');
+
+    // Placeholder: submit a dummy score (replace with actual game score when available)
+    const dummyScore = Math.floor(Math.random() * 100); // replace with real score!
+    submitScore(selectedLesson.id, dummyScore);
   };
 
   return (
@@ -48,12 +85,35 @@ export default function Home() {
               <p className="text-center text-gray-600">Select a lesson to begin.</p>
             )}
           </div>
+
+          {/* Leaderboard section */}
           {selectedLesson && (
-            <button onClick={handlePlayGame} className="bg-[#6B4226] hover:bg-[#5a3922] text-white font-medium py-2 px-6 rounded-lg transition">
+            <div className="w-full max-w-4xl bg-white p-4 rounded-lg shadow-md mb-6">
+              <h3 className="text-xl font-semibold mb-2">Leaderboard</h3>
+              {leaderboard.length === 0 ? (
+                <p className="text-gray-500">No scores yet. Be the first to play!</p>
+              ) : (
+                <ul>
+                  {leaderboard.map((entry) => (
+                    <li key={entry.id} className="flex justify-between border-b py-1">
+                      <span>{entry.user}</span>
+                      <span>{entry.score}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {selectedLesson && (
+            <button
+              onClick={handlePlayGame}
+              className="bg-[#6B4226] hover:bg-[#5a3922] text-white font-medium py-2 px-6 rounded-lg transition"
+            >
               Play Game
             </button>
           )}
-      </main>
+        </main>
       </div>
     </div>
   );

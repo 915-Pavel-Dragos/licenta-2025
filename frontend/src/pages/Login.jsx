@@ -2,39 +2,34 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-
 export default function Login() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
       email: "",
       password: ""
-    })
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+  };
 
   const [isLoading, setIsLoading] = useState(false);
-
   const [successMessage , setSuccessMessage] = useState(null);
-
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
       e.preventDefault();
-      if (isLoading) {
-        return 
-      }
+      if (isLoading) return;
 
       setIsLoading(true);
 
       try{
-        const response = await axios.post("http://localhost:8000/api/login/", formData)
-        setSuccessMessage("Login Successful!")
+        const response = await axios.post("http://localhost:8000/api/login/", formData);
+        setSuccessMessage("Login Successful!");
         localStorage.setItem("accessToken", response.data.tokens.access);
         localStorage.setItem("refreshToken", response.data.tokens.refresh);
         navigate('/home');
@@ -47,13 +42,13 @@ export default function Login() {
             if(errorMessages && errorMessages.length > 0){
               setError(errorMessages[0]);
             } 
-          })
+          });
         }
       }
       finally{
-        setIsLoading(false)
+        setIsLoading(false);
       }
-  }
+  };
 
   return (
     <div>
@@ -62,16 +57,17 @@ export default function Login() {
       <h2>Login:</h2>
       <form>
         <label>email:</label><br/>
-        <input type="email" name="email" value={formData.email} onChange={handleChange}/><br/>
-        <br/>
+        <input type="email" name="email" value={formData.email} onChange={handleChange}/><br/><br/>
 
         <label>password:</label><br/>
-        <input type="password" name="password" value={formData.password} onChange={handleChange}/><br/>
-        <br/>
+        <input type="password" name="password" value={formData.password} onChange={handleChange}/><br/><br/>
 
-        <button type="submit" disabled={isLoading} onClick={handleSubmit}>Login </button>
-
+        <button type="submit" disabled={isLoading} onClick={handleSubmit}>Login</button>
       </form>
+      <br/>
+      <button onClick={() => navigate('/register')} className="underline">
+        Don't have an account? Register here
+      </button>
     </div>
-  )
+  );
 }
