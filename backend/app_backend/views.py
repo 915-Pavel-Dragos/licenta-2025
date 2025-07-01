@@ -5,9 +5,11 @@ from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Lesson, GameScore
+from .models import Lesson, GameScoreLesson, LessonFinished
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
+from rest_framework import generics
+
 
 class UserRegistrationAPIView(GenericAPIView):
     permission_classes = (AllowAny, )
@@ -72,36 +74,62 @@ class LessonByYearView(ListAPIView):
     def get_queryset(self):
         year = self.kwargs['year']
         return Lesson.objects.filter(year=year)
-
-
-class LessonLeaderboardView(APIView):
-    def get(self, request, lesson_id):
-        lesson = get_object_or_404(Lesson, id=lesson_id)
-        
-        scores = GameScore.objects.filter(lesson=lesson).order_by('-score', 'played_at')
-        
-        best_scores = {}
-        for score in scores:
-            if score.user_id not in best_scores or score.score > best_scores[score.user_id].score:
-                best_scores[score.user_id] = score
-        
-        leaderboard_data = [
-            {"username": entry.user.username, "score": entry.score}
-            for entry in best_scores.values()
-        ]
-
-        leaderboard_data.sort(key=lambda x: x["score"], reverse=True)
-
-        serializer = LeaderboardEntrySerializer(leaderboard_data, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-class SubmitScoreView(APIView):
+class GameScoreLessonCreateUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = GameScoreSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Score submitted successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user
+        lesson_id = request.data.get("lesson")
+        score = request.data.get("score")
+
+        if not lesson_id or score is None:
+            return Response({"error": "lesson and score are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        game_score, created = GameScoreLesson.objects.update_or_create(
+            user=user,
+            lesson_id=lesson_id,
+            defaults={'score': score}
+        )
+        serializer = GameScoreLessonSerializer(game_score)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class GameScoresForLessonAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = GameScoreLessonSerializer
+
+    def get_queryset(self):
+        lesson_id = self.kwargs['lesson_id']
+        return GameScoreLesson.objects.filter(lesson_id=lesson_id)
+    
+
+class MarkLessonFinishedAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        lesson_id = request.data.get("lesson")
+
+        if not lesson_id:
+            return Response({"error": "lesson is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj, created = LessonFinished.objects.get_or_create(
+            user=user,
+            lesson_id=lesson_id
+        )
+        if not created:
+            return Response({"message": "Already marked as finished."}, status=status.HTTP_200_OK)
+
+        serializer = LessonFinishedSerializer(obj)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+class LessonsFinishedByUserAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LessonFinishedSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        return LessonFinished.objects.filter(user_id=user_id)

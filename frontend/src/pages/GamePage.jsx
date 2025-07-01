@@ -14,6 +14,38 @@ function generateEquation() {
   };
 }
 
+const submitScore = async (lessonId, score) => {
+  try {
+    const token = localStorage.getItem('accessToken');
+    await fetch('http://localhost:8000/api/gamescore/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ lesson: lessonId, score }),
+    });
+  } catch (error) {
+    console.error('Error submitting score:', error);
+  }
+};
+
+const markLessonFinished = async (lessonId) => {
+  try {
+    const token = localStorage.getItem('accessToken');
+    await fetch('http://localhost:8000/api/lesson-finished/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ lesson: lessonId }),
+    });
+  } catch (error) {
+    console.error('Error marking lesson finished:', error);
+  }
+};
+
 export default function GamePage() {
   const { lessonId } = useParams();
   const [lesson, setLesson] = useState(null);
@@ -35,6 +67,14 @@ export default function GamePage() {
     fetchLesson();
   }, [lessonId]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      markLessonFinished(lessonId);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearTimeout(timer); // Clean up on exit
+  }, [lessonId]);
+
   const handleAnswer = (userAnswer) => {
     const correct = userAnswer === equation.isCorrect;
 
@@ -47,6 +87,7 @@ export default function GamePage() {
 
       if (newMistakes >= 3) {
         alert(`Game Over! Final score: ${score - 3}`);
+        submitScore(lessonId, score - 3);
         window.close();
         return;
       }

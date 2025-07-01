@@ -26,8 +26,12 @@ class Lesson(models.Model):
         return self.title
     
 
-class GameScore(models.Model):
+class GameScoreLesson(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     score = models.IntegerField()
-    played_at = models.DateTimeField(auto_now_add=True)
+
+
+class LessonFinished(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)

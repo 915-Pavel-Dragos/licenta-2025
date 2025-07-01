@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Lesson, GameScore
+from .models import CustomUser, Lesson, GameScoreLesson, LessonFinished
 from django.contrib.auth import authenticate
 
 
@@ -53,16 +53,15 @@ class LessonSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class LeaderboardEntrySerializer(serializers.Serializer):
-    username = serializers.CharField()
-    score = serializers.IntegerField()
-
-
-class GameScoreSerializer(serializers.ModelSerializer):
+class GameScoreLessonSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source='user.username', read_only=True)
+    
     class Meta:
-        model = GameScore
-        fields = ['lesson', 'score']
+        model = GameScoreLesson
+        fields = ['id', 'user', 'lesson', 'score']
 
-    def create(self, validated_data):
-        user = self.context['request'].user
-        return GameScore.objects.create(user=user, **validated_data)
+class LessonFinishedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonFinished
+        fields = ['id', 'user', 'lesson']
+

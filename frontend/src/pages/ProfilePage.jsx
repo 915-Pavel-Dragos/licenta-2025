@@ -10,7 +10,6 @@ export function ProfilePage() {
     lessons_completed: 0,
   });
 
-  // Placeholder user level, replace with real data when available
   const userLevel = 4;
   const maxLevel = 10;
 
@@ -71,9 +70,7 @@ export function ProfilePage() {
       <main className="flex-1 p-8 bg-[#f9f7e5] flex flex-col items-center">
         <h1 className="text-2xl font-semibold mb-8">Your Profile</h1>
 
-        {/* Existing circles: bigger and hollow */}
         <div className="flex justify-center space-x-14 mb-12">
-          {/* Circle 1 */}
           <div
             className="flex flex-col items-center justify-center w-36 h-36 rounded-full"
             style={{
@@ -86,7 +83,6 @@ export function ProfilePage() {
             <span className="mt-2 text-lg font-semibold">Games Played</span>
           </div>
 
-          {/* Circle 2 */}
           <div
             className="flex flex-col items-center justify-center w-36 h-36 rounded-full"
             style={{
@@ -99,7 +95,6 @@ export function ProfilePage() {
             <span className="mt-2 text-lg font-semibold">Best Score</span>
           </div>
 
-          {/* Circle 3 */}
           <div
             className="flex flex-col items-center justify-center w-36 h-36 rounded-full"
             style={{
@@ -113,9 +108,7 @@ export function ProfilePage() {
           </div>
         </div>
 
-        {/* User level circle + progress bar */}
         <div className="flex items-center space-x-10 w-full max-w-4xl">
-          {/* User level circle */}
           <div
             className="flex items-center justify-center rounded-full"
             style={{
@@ -131,9 +124,7 @@ export function ProfilePage() {
             {userLevel}
           </div>
 
-          {/* Progress bar + rewards */}
           <div className="flex flex-col flex-grow">
-            {/* Progress bar container */}
             <div
               className="flex rounded-lg overflow-hidden border border-gray-300"
               style={{ height: 36 }}
@@ -151,7 +142,6 @@ export function ProfilePage() {
               ))}
             </div>
 
-            {/* Rewards labels */}
             <div className="flex justify-between mt-2 text-xs text-gray-700 font-semibold">
               {[...Array(maxLevel)].map((_, idx) => (
                 <span key={idx} className="flex-1 text-center">

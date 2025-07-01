@@ -15,7 +15,6 @@ export function EditProfile() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch user data on mount
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem('accessToken');
@@ -65,7 +64,6 @@ export function EditProfile() {
         }
       };
 
-      // Prepare data to send, exclude empty passwords if not changing
       const updateData = {
         username: formData.username,
         email: formData.email,
@@ -74,8 +72,6 @@ export function EditProfile() {
         updateData.password = formData.password1;
       }
 
-      // Assuming your backend has an endpoint like /api/user/update/ or /api/user/
-      // Replace URL if necessary
       await axios.put('http://localhost:8000/api/user/', updateData, config);
 
       navigate('/profile');

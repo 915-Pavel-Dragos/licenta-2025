@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser, Lesson, GameScore
+from .models import CustomUser, Lesson, GameScoreLesson, LessonFinished
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 from django.contrib.auth.admin import UserAdmin
 
@@ -19,6 +19,11 @@ class LessonAdmoin(admin.ModelAdmin):
     list_filter = ('year', 'difficulty')
 
 
-@admin.register(GameScore)
-class GameScoreAdmin(admin.ModelAdmin):
-    list_display = ('user', 'lesson', 'score', 'played_at')
+@admin.register(GameScoreLesson)
+class GameScoreLessonAdmin(admin.ModelAdmin):
+    list_display = ('user', 'lesson', 'score')
+
+
+@admin.register(LessonFinished)
+class LessonFinishedAdmin(admin.ModelAdmin):
+    list_display = ('user_id', 'lesson_id')
