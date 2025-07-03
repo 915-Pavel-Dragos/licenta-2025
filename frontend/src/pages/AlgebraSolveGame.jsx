@@ -2,17 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 function generateEquation() {
-  const a = Math.floor(Math.random() * 10);
+  const x = Math.floor(Math.random() * 10) + 1;
+  const a = Math.floor(Math.random() * 5) + 1;
   const b = Math.floor(Math.random() * 10);
-  const correctAnswer = a + b;
-  const isCorrect = Math.random() > 0.5;
-  const displayedAnswer = isCorrect
-    ? correctAnswer
-    : correctAnswer + Math.floor(Math.random() * 5) - 2;
+  const result = a * x + b;
 
   return {
-    text: `${a} + ${b} = ${displayedAnswer}`,
-    isCorrect,
+    question: `${a}x + ${b} = ${result}`,
+    answer: x
   };
 }
 
@@ -64,10 +61,11 @@ const awardXP = async (xp) => {
   }
 };
 
-export default function GamePage() {
+export default function AlgebraSolveGame() {
   const { lessonId } = useParams();
   const [lesson, setLesson] = useState(null);
   const [equation, setEquation] = useState(generateEquation());
+  const [userInput, setUserInput] = useState('');
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
 
@@ -78,7 +76,7 @@ export default function GamePage() {
         const data = await res.json();
         setLesson(data);
       } catch (err) {
-        console.error('Error loading lesson for game:', err);
+        console.error('Error loading lesson:', err);
       }
     };
 
@@ -93,29 +91,9 @@ export default function GamePage() {
     return () => clearTimeout(timer);
   }, [lessonId]);
 
-  const handleAnswer = (userAnswer) => {
-    const correct = userAnswer === equation.isCorrect;
-
-    if (correct) {
-      setScore((prev) => prev + 5);
-    } else {
-      const newMistakes = mistakes + 1;
-      const finalScore = score - 3;
-      setScore(finalScore);
-      setMistakes(newMistakes);
-
-      if (newMistakes >= 3) {
-        handleEndGame(finalScore);
-        return;
-      }
-    }
-
-    setEquation(generateEquation());
-  };
-
-  const handleEndGame = async (finalScore) => {
+  const handleGameOver = async (finalScore) => {
     if (finalScore > 20) {
-      await awardXP(5);
+      await awardXP(5); 
     }
 
     await submitScore(lessonId, finalScore);
@@ -123,36 +101,54 @@ export default function GamePage() {
     window.close();
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const userAnswer = parseInt(userInput, 10);
+
+    if (userAnswer === equation.answer) {
+      setScore(prev => prev + 5);
+    } else {
+      const newMistakes = mistakes + 1;
+      const finalScore = score - 2;
+      setScore(finalScore);
+      setMistakes(newMistakes);
+
+      if (newMistakes >= 3) {
+        handleGameOver(finalScore);
+        return;
+      }
+    }
+
+    setEquation(generateEquation());
+    setUserInput('');
+  };
+
   return (
     <div className="min-h-screen bg-[#f9f7e5] flex flex-col items-center justify-center p-6">
-      <h1 className="text-3xl font-bold mb-4">Game for: {lesson?.title}</h1>
+      <h1 className="text-3xl font-bold mb-4">Solve for x: {lesson?.title}</h1>
 
       <div className="bg-white p-6 rounded-xl shadow text-center max-w-xl w-full">
-        <h2 className="text-xl font-semibold mb-4">Is this equation correct?</h2>
-        <p className="text-3xl font-bold mb-6">{equation.text}</p>
+        <h2 className="text-xl font-semibold mb-4">{equation.question}</h2>
 
-        <div className="flex justify-center gap-6 mb-6">
+        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
+          <input
+            type="number"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            className="border border-gray-400 px-4 py-2 rounded-lg w-40 text-center"
+            required
+          />
           <button
-            onClick={() => handleAnswer(true)}
-            className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-semibold"
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-semibold"
           >
-            True
+            Submit Answer
           </button>
-          <button
-            onClick={() => handleAnswer(false)}
-            className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-semibold"
-          >
-            False
-          </button>
-        </div>
+        </form>
 
-        <div className="text-lg">
-          <p>
-            Score: <span className="font-bold">{score}</span>
-          </p>
-          <p>
-            Mistakes: <span className="font-bold">{mistakes}</span> / 3
-          </p>
+        <div className="text-lg mt-6">
+          <p>Score: <span className="font-bold">{score}</span></p>
+          <p>Mistakes: <span className="font-bold">{mistakes}</span> / 3</p>
         </div>
       </div>
     </div>

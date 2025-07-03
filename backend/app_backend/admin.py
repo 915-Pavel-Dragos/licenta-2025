@@ -8,9 +8,15 @@ from django.contrib.auth.admin import UserAdmin
 class CustomAdminUser(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
-
     model = CustomUser
 
+    list_display = ('email', 'username', 'level', 'display_level', 'is_staff', 'is_active')
+    
+    readonly_fields = ('display_level', 'current_xp')
+
+    fieldsets = UserAdmin.fieldsets + (
+        ('Additional Info', {'fields': ('level', 'display_level', 'current_xp')}),
+    )
 
 @admin.register(Lesson)
 class LessonAdmoin(admin.ModelAdmin):

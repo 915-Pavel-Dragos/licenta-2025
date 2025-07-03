@@ -8,9 +8,10 @@ export function ProfilePage() {
     games_played: 0,
     best_score: 0,
     lessons_completed: 0,
+    level: 0,
   });
 
-  const userLevel = 4;
+  const [userLevel, setUserLevel] = useState(0);
   const maxLevel = 10;
 
   useEffect(() => {
@@ -20,7 +21,11 @@ export function ProfilePage() {
         const response = await axios.get('http://localhost:8000/api/user/stats/', {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
+        
         setStats(response.data);
+        if (response.data.level !== undefined) {
+          setUserLevel(Math.floor(response.data.level / 100));
+        }
       } catch (error) {
         console.error('Failed to fetch stats', error);
       }
@@ -44,7 +49,7 @@ export function ProfilePage() {
 
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
-      navigate('/');
+      navigate('/logout');
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -72,39 +77,39 @@ export function ProfilePage() {
 
         <div className="flex justify-center space-x-14 mb-12">
           <div
-            className="flex flex-col items-center justify-center w-36 h-36 rounded-full"
+            className="flex flex-col items-center justify-center w-36 h-36 rounded-full text-center gap-y-1"
             style={{
               border: '5px solid #6B4226',
               backgroundColor: 'transparent',
               color: '#6B4226',
             }}
           >
-            <span className="text-5xl font-bold">{stats.games_played}</span>
-            <span className="mt-2 text-lg font-semibold">Games Played</span>
+            <span className="text-5xl font-bold leading-none">{stats.games_played}</span>
+            <span className="text-lg font-semibold leading-tight">Games Played</span>
           </div>
 
           <div
-            className="flex flex-col items-center justify-center w-36 h-36 rounded-full"
+            className="flex flex-col items-center justify-center w-36 h-36 rounded-full text-center gap-y-1"
             style={{
               border: '5px solid #A67C00',
               backgroundColor: 'transparent',
               color: '#A67C00',
             }}
           >
-            <span className="text-5xl font-bold">{stats.best_score}</span>
-            <span className="mt-2 text-lg font-semibold">Best Score</span>
+            <span className="text-5xl font-bold leading-none">{stats.best_score}</span>
+            <span className="text-lg font-semibold leading-tight">Best Score</span>
           </div>
 
           <div
-            className="flex flex-col items-center justify-center w-36 h-36 rounded-full"
+            className="flex flex-col items-center justify-center w-36 h-36 rounded-full text-center gap-y-1"
             style={{
               border: '5px solid #CC7A00',
               backgroundColor: 'transparent',
               color: '#CC7A00',
             }}
           >
-            <span className="text-5xl font-bold">{stats.lessons_completed}</span>
-            <span className="mt-2 text-lg font-semibold">Lessons Completed</span>
+            <span className="text-5xl font-bold leading-none">{stats.lessons_completed}</span>
+            <span className="text-lg font-semibold leading-tight">Lessons Completed</span>
           </div>
         </div>
 

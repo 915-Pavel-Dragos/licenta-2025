@@ -9,6 +9,17 @@ class CustomUser(AbstractUser):
 
     def __str__(self) -> str:
         return self.email
+    
+    level = models.PositiveIntegerField(default=0)  
+
+    @property
+    def display_level(self):
+        return self.level // 100
+
+    @property
+    def current_xp(self):
+        return self.level % 100
+
 
 class Lesson(models.Model):
     DIFFICUTY_CHOICES = [

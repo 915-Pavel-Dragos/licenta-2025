@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-function generateEquation() {
-  const a = Math.floor(Math.random() * 10);
-  const b = Math.floor(Math.random() * 10);
-  const correctAnswer = a + b;
-  const isCorrect = Math.random() > 0.5;
-  const displayedAnswer = isCorrect
-    ? correctAnswer
-    : correctAnswer + Math.floor(Math.random() * 5) - 2;
+function generateQuestion() {
+  const a = Math.floor(Math.random() * 10) + 1;
+  const b = Math.floor(Math.random() * 10) + 1;
+  const correct = a * b;
 
+  const choices = new Set([correct]);
+  while (choices.size < 4) {
+    const fake = correct + Math.floor(Math.random() * 10) - 5;
+    if (fake > 0) choices.add(fake);
+  }
+
+  const shuffled = Array.from(choices).sort(() => Math.random() - 0.5);
   return {
-    text: `${a} + ${b} = ${displayedAnswer}`,
-    isCorrect,
+    question: `${a} × ${b}`,
+    correctAnswer: correct,
+    options: shuffled,
   };
 }
 
@@ -64,10 +68,10 @@ const awardXP = async (xp) => {
   }
 };
 
-export default function GamePage() {
+export default function MultiplicationMatchGame() {
   const { lessonId } = useParams();
   const [lesson, setLesson] = useState(null);
-  const [equation, setEquation] = useState(generateEquation());
+  const [question, setQuestion] = useState(generateQuestion());
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
 
@@ -78,7 +82,7 @@ export default function GamePage() {
         const data = await res.json();
         setLesson(data);
       } catch (err) {
-        console.error('Error loading lesson for game:', err);
+        console.error('Error loading lesson:', err);
       }
     };
 
@@ -93,27 +97,7 @@ export default function GamePage() {
     return () => clearTimeout(timer);
   }, [lessonId]);
 
-  const handleAnswer = (userAnswer) => {
-    const correct = userAnswer === equation.isCorrect;
-
-    if (correct) {
-      setScore((prev) => prev + 5);
-    } else {
-      const newMistakes = mistakes + 1;
-      const finalScore = score - 3;
-      setScore(finalScore);
-      setMistakes(newMistakes);
-
-      if (newMistakes >= 3) {
-        handleEndGame(finalScore);
-        return;
-      }
-    }
-
-    setEquation(generateEquation());
-  };
-
-  const handleEndGame = async (finalScore) => {
+  const handleGameOver = async (finalScore) => {
     if (finalScore > 20) {
       await awardXP(5);
     }
@@ -123,36 +107,46 @@ export default function GamePage() {
     window.close();
   };
 
+  const handleChoice = (choice) => {
+    if (choice === question.correctAnswer) {
+      setScore(prev => prev + 5);
+      setQuestion(generateQuestion());
+    } else {
+      const newMistakes = mistakes + 1;
+      const finalScore = score - 2;
+      setScore(finalScore);
+      setMistakes(newMistakes);
+
+      if (newMistakes >= 3) {
+        handleGameOver(finalScore);
+      } else {
+        setQuestion(generateQuestion());
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f9f7e5] flex flex-col items-center justify-center p-6">
-      <h1 className="text-3xl font-bold mb-4">Game for: {lesson?.title}</h1>
+      <h1 className="text-3xl font-bold mb-4">Multiplication Game: {lesson?.title}</h1>
 
       <div className="bg-white p-6 rounded-xl shadow text-center max-w-xl w-full">
-        <h2 className="text-xl font-semibold mb-4">Is this equation correct?</h2>
-        <p className="text-3xl font-bold mb-6">{equation.text}</p>
+        <h2 className="text-xl font-semibold mb-4">What is {question.question}?</h2>
 
-        <div className="flex justify-center gap-6 mb-6">
-          <button
-            onClick={() => handleAnswer(true)}
-            className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-semibold"
-          >
-            True
-          </button>
-          <button
-            onClick={() => handleAnswer(false)}
-            className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-semibold"
-          >
-            False
-          </button>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {question.options.map((opt, index) => (
+            <button
+              key={index}
+              onClick={() => handleChoice(opt)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg font-semibold"
+            >
+              {opt}
+            </button>
+          ))}
         </div>
 
-        <div className="text-lg">
-          <p>
-            Score: <span className="font-bold">{score}</span>
-          </p>
-          <p>
-            Mistakes: <span className="font-bold">{mistakes}</span> / 3
-          </p>
+        <div className="text-lg mt-4">
+          <p>Score: <span className="font-bold">{score}</span></p>
+          <p>Mistakes: <span className="font-bold">{mistakes}</span> / 3</p>
         </div>
       </div>
     </div>

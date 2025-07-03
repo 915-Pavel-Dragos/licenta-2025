@@ -16,5 +16,6 @@ urlpatterns = [
     path('gamescore/<int:lesson_id>/', GameScoresForLessonAPIView.as_view(), name='lesson_game_scores'),
     path('lesson-finished/', MarkLessonFinishedAPIView.as_view(), name='mark_lesson_finished'),
     path('lesson-finished/<int:user_id>/', LessonsFinishedByUserAPIView.as_view(), name='user_finished_lessons'),
+    path('user/stats/', UserStatsAPIView.as_view(), name='user-stats'),
 ]
 

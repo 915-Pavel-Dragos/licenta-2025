@@ -2,19 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../axiosConfig';
 
 async function submitScore(lessonId, score) {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.post(
-      'http://localhost:8000/api/gamescore/',
-      { lesson: lessonId, score },
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
+    const response = await api.post('/gamescore/', { lesson: lessonId, score });
     console.log('Score submitted:', response.data);
   } catch (error) {
     console.error('Failed to submit score', error);
+  }
+}
+
+async function markLessonFinished(lessonId) {
+  try {
+    const response = await api.post('/lesson-finished/', { lesson: lessonId });
+    console.log('Lesson marked as finished:', response.data);
+  } catch (error) {
+    console.error('Failed to mark lesson as finished', error);
   }
 }
 
@@ -25,39 +29,33 @@ export default function Home() {
   const [leaderboard, setLeaderboard] = useState([]);
   const navigate = useNavigate();
 
-  const accessToken = localStorage.getItem('accessToken');
-
-  const fetchLessons = () => {
-    fetch('http://localhost:8000/api/lessons')
-      .then(res => res.json())
-      .then(data => setLessons(data))
-      .catch(err => console.error('Failed to fetch lessons:', err));
+  const fetchLessons = async () => {
+    try {
+      const response = await api.get('/lessons/');
+      setLessons(response.data);
+    } catch (err) {
+      console.error('Failed to fetch lessons:', err);
+    }
   };
 
-  const fetchLeaderboard = (lessonId) => {
+  const fetchLeaderboard = async (lessonId) => {
     if (!lessonId) return;
 
-    fetch(`http://localhost:8000/api/gamescore/${lessonId}/`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          const sorted = data.sort((a, b) => b.score - a.score); 
-          setLeaderboard(sorted);
-        } else {
-          console.error('Expected array but got:', data);
-          setLeaderboard([]);
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch leaderboard:', err);
+    try {
+      const response = await api.get(`/gamescore/${lessonId}/`);
+      const data = response.data;
+
+      if (Array.isArray(data)) {
+        const sorted = data.sort((a, b) => b.score - a.score);
+        setLeaderboard(sorted);
+      } else {
+        console.error('Expected array but got:', data);
         setLeaderboard([]);
-      });
+      }
+    } catch (err) {
+      console.error('Failed to fetch leaderboard:', err);
+      setLeaderboard([]);
+    }
   };
 
   useEffect(() => {
@@ -91,14 +89,30 @@ export default function Home() {
     return acc;
   }, {});
 
+  const handleSelectLesson = async (lesson) => {
+    setSelectedLesson(lesson);
+    await markLessonFinished(lesson.id);
+  };
+
   const handlePlayGame = () => {
     if (!selectedLesson) return;
 
-    const url = `${window.location.origin}/game/${selectedLesson.id}`;
-    window.open(url, '_blank');
+    let gamePath;
 
-    const dummyScore = Math.floor(Math.random() * 100);
-    submitScore(selectedLesson.id, dummyScore);
+    if (selectedLesson.id === 1) {
+      gamePath = `/game/${selectedLesson.id}`; 
+    } else if (selectedLesson.id === 2) {
+      gamePath = `/algebra-solve/${selectedLesson.id}`;
+    } else if (selectedLesson.id === 3) {
+      gamePath = `/multiplication-match/${selectedLesson.id}`;
+    } else if (selectedLesson.id === 4) {
+      gamePath = `/division-pop/${selectedLesson.id}`;
+    } else {
+      alert("No game is linked to this lesson yet.");
+      return;
+    }
+
+    window.open(`${window.location.origin}${gamePath}`, '_blank');
   };
 
   return (
@@ -107,11 +121,10 @@ export default function Home() {
         open={sidebarOpen}
         setOpen={setSidebarOpen}
         lessonsByYear={groupedLessons}
-        onSelectLesson={setSelectedLesson}
+        onSelectLesson={handleSelectLesson}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-
         <main className="flex-1 p-6 overflow-y-auto">
           <div className="max-w-4xl mx-auto flex flex-col items-center">
             <div className="w-full h-auto border-2 border-dashed border-black/20 rounded-2xl bg-white/50 p-6 overflow-y-auto mb-6">
@@ -128,7 +141,7 @@ export default function Home() {
             {selectedLesson && (
               <div className="w-full bg-white p-4 rounded-lg shadow-md mb-6 overflow-y-auto max-h-60">
                 <h3 className="text-xl font-semibold mb-2">Leaderboard</h3>
-                {!Array.isArray(leaderboard) || leaderboard.length === 0 ? (
+                {leaderboard.length === 0 ? (
                   <p className="text-gray-500">No scores yet. Be the first to play!</p>
                 ) : (
                   <ul>
