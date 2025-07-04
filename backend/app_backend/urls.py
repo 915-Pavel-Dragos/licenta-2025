@@ -17,5 +17,6 @@ urlpatterns = [
     path('lesson-finished/', MarkLessonFinishedAPIView.as_view(), name='mark_lesson_finished'),
     path('lesson-finished/<int:user_id>/', LessonsFinishedByUserAPIView.as_view(), name='user_finished_lessons'),
     path('user/stats/', UserStatsAPIView.as_view(), name='user-stats'),
+    path('user/xp/', UpdateUserXPAPIView.as_view(), name='user-xp-update'),
 ]
 
